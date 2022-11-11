@@ -141,7 +141,8 @@ LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 
 				if (!settings.popup)
 				{
-					if (!keystrokeShiftProcessed) {
+					if (!keystrokeShiftProcessed)
+					{
 						PressKey(VK_MENU);
 						PressKey(VK_LSHIFT);
 						ReleaseKey(VK_MENU);
