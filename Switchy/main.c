@@ -49,7 +49,8 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
-	hHook = SetWindowsHookEx(WH_KEYBOARD_LL, LowLevelKeyboardProc, 0, 0);
+	HINSTANCE hinst = GetModuleHandle(NULL);
+	hHook = SetWindowsHookEx(WH_KEYBOARD_LL, LowLevelKeyboardProc, hinst, 0);
 	if (hHook == NULL)
 	{
 		ShowError("Error calling \"SetWindowsHookEx(...)\"");
