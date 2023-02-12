@@ -1,5 +1,7 @@
 #include <Windows.h>
+#if _DEBUG
 #include <stdio.h>
+#endif
 
 typedef NTSTATUS(WINAPI* RtlGetVersionPtr)(PRTL_OSVERSIONINFOW);
 
@@ -20,12 +22,12 @@ struct Settings
 	// see comments in original "CapsWitch.ini" file
 	// (available on GitHub) for details
 	BYTE EmulatedKeystroke;
-	BOOL ShowMultiInstanceError;
+	BOOL HideMultiInstanceError;
 	BOOL AltCapsToDisable;
-	BOOL UseSoundIndication;	/// not yet implemented
+	BOOL UseSoundIndication;	/// not implemented yet
 };
 
-struct Settings Settings = { 1, FALSE, TRUE, FALSE };
+struct Settings Settings = { 1, TRUE, TRUE, TRUE };
 
 
 
@@ -36,10 +38,10 @@ int main(int argc, char** argv)
 	//printf("%s", argv[0]);
 	HANDLE hMutex = CreateMutex(0, 0, "CapsWitch");
 	if (GetLastError() == ERROR_ALREADY_EXISTS) {
-		if (Settings.ShowMultiInstanceError == TRUE) {
+		if (Settings.HideMultiInstanceError != TRUE) {
 			MessageBox(NULL,
-				L"Another instance of the program is already running!\nThis instance will be terminated.",
-				L"CapsWitch", MB_OK | MB_ICONWARNING);
+				"Another instance of the program is already running!\n\nThis instance will be terminated.",
+				"CapsWitch", MB_OK | MB_ICONWARNING);
 		}
 		return 1;
 	}
@@ -48,8 +50,8 @@ int main(int argc, char** argv)
 	hHook = SetWindowsHookEx(WH_KEYBOARD_LL, LowLevelKeyboardProc, hinst, 0);
 	if (hHook == NULL) {
 		MessageBox(NULL,
-			L"Error calling \"SetWindowsHookEx(...)\"",
-			L"CapsWitch", MB_OK | MB_ICONERROR);
+			"Error calling \"SetWindowsHookEx(...)\"",
+			"CapsWitch", MB_OK | MB_ICONERROR);
 		return -1;
 	}
 
@@ -67,46 +69,42 @@ int main(int argc, char** argv)
 
 int importSettingsFromFile(char* settingsFileName, struct Settings* Settings)
 {
-	FILE* settingsFile = NULL;
-	if (settingsFileName != NULL) {
-		fopen_s(&settingsFile, settingsFileName, "r");
+	// use default name if arguments didn't provide any
+	if (settingsFileName == NULL) {
+		settingsFileName = "CapsWitch.ini";
 	}
-	else {
-		fopen_s(&settingsFile, "CapsWitch.ini", "r");
-	}
+#if _DEBUG
+	printf("[importSettingsFromFile] Trying to open %s...\n", settingsFileName);
+#endif
+	HANDLE settingsFile = CreateFile(settingsFileName, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
-	if (settingsFile != NULL) {
+	if (settingsFile != INVALID_HANDLE_VALUE) {
 #if _DEBUG
 		printf("[importSettingsFromFile] settingsFile found, settings import started...\n");
 #endif
-		while (!feof(settingsFile)) {
-			char currString[256];
-			fgets(currString, 255, settingsFile);
+		// read the first 1KB of data (terrible soletion but should be enough for a long time)
+		char currString[1024]; int currStringLen;
+		ReadFile(settingsFile, currString, 1023, &currStringLen, NULL);
 
-			if (currString[0] == ';' || currString[0] == '\n') { continue; }	// skip if string is commented or empty
-			
-			char* ctx = NULL;
-			char* settingName = strtok_s(currString, "=", &ctx);
-			int settingValue = atoi(strtok_s(NULL, "=", &ctx));
+		if (settingsFile != INVALID_HANDLE_VALUE) {
+			char* ptr = NULL;
 
-			if (strcmp(settingName, "EmulatedKeystroke") == 0) {
-				Settings->EmulatedKeystroke = settingValue;
-			}
-			else if (strcmp(settingName, "ShowMultiInstanceError") == 0) {
-				Settings->ShowMultiInstanceError = settingValue;
-			}
-			else if (strcmp(settingName, "AltCapsToDisable") == 0) {
-				Settings->AltCapsToDisable = settingValue;
-			}
-			else if (strcmp(settingName, "UseSoundIndication") == 0) {
-				Settings->UseSoundIndication = settingValue;
-			}
-			else {
-#if _DEBUG
-				printf("[importSettingsFromFile] Ignored unknown setting: %s=%d\n", settingName, settingValue);
-#endif
+			// \n and = are required to make sure this is not a part of some comment!
+			char availableSettings[][32] = {
+				"\nEmulatedKeystroke=", "\nHideMultiInstanceError=", "\nAltCapsToDisable=", "\nUseSoundIndication="
+			};
+
+			for (int i = 0; i < sizeof(availableSettings) / sizeof(availableSettings)[0]; i++) {
+				// strstr uses vcruntime_string.h, meaning it doesn't require string.h to be used at all.
+				// this will make output files smaller, but, overall, is a terrible solution.
+				ptr = strstr(currString, availableSettings[i]);
+				if (ptr != NULL) {
+					ptr = strstr(ptr, "=");
+					Settings->EmulatedKeystroke = ptr[1]-'0';
+				}
 			}
 		}
+		CloseHandle(settingsFile);
 
 		// now, change the keys we want to look for
 		// to match the given "EmulatedKeystroke" setting
@@ -123,8 +121,9 @@ int importSettingsFromFile(char* settingsFileName, struct Settings* Settings)
 
 #if _DEBUG
 		printf("[importSettingsFromFile] Settings import finished, values: %d %d %d %d\n",
-			Settings->EmulatedKeystroke, Settings->ShowMultiInstanceError, Settings->AltCapsToDisable, Settings->UseSoundIndication);
+			Settings->EmulatedKeystroke, Settings->HideMultiInstanceError, Settings->AltCapsToDisable, Settings->UseSoundIndication);
 #endif
+		return 0;
 	}
 
 	else {
@@ -133,10 +132,10 @@ int importSettingsFromFile(char* settingsFileName, struct Settings* Settings)
 #endif
 		// we only want to throw error if custom settings file was specified, 
 		// and continue in portable mode otherwise.
-		if (settingsFileName != NULL) {
+		if (settingsFileName != L"CapsWitch.ini") {
 			int mbox = MessageBox(NULL,
-				L"Unable to open specified settings file!\nPress OK to continue, or Cancel to terminate.",
-				L"CapsWitch", MB_OKCANCEL | MB_ICONWARNING);
+				"Unable to open specified settings file!\n\nPress OK to continue, or Cancel to terminate.",
+				"CapsWitch", MB_OKCANCEL | MB_ICONWARNING);
 
 			if (mbox == IDCANCEL) { return -1; }
 		}
@@ -182,7 +181,9 @@ LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 
 			if (wParam == WM_KEYUP || wParam == WM_SYSKEYUP) {
 				key1Processed = FALSE;
+#if _DEBUG
 				printf("key1 UP\n");
+#endif
 
 				// special behaviour for Win+Space keystroke
 				// (as the language pop-up is currently opened
@@ -210,7 +211,9 @@ LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 
 			if (wParam == WM_KEYDOWN && !key1Processed) {
 				key1Processed = TRUE;
+#if _DEBUG
 				printf("key1 DOWN\n");
+#endif
 
 				if (key2Processed == TRUE) {
 					ToggleCapsLockState();
@@ -232,14 +235,18 @@ LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 		else if (key->vkCode == VK_LSHIFT) {
 			if ((wParam == WM_KEYUP || wParam == WM_SYSKEYUP) && !key1Processed) {
 				key2Processed = FALSE;
+#if _DEBUG
 				printf("key2 UP\n");
+#endif
 			}
 
 			if (!enabled) { return CallNextHookEx(hHook, nCode, wParam, lParam); }
 
 			if (wParam == WM_KEYDOWN && !key2Processed) {
 				key2Processed = TRUE;
+#if _DEBUG
 				printf("key2 DOWN\n");
+#endif
 
 				if (key1Processed == TRUE) {
 					ToggleCapsLockState();
