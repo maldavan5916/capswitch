@@ -28,7 +28,7 @@ The program works by emulating specific language switch combination (Alt+Shift b
 
 + **CapsLock** to change keyboard layout  
 + **Shift+CapsLock / CapsLock+Shift** to toggle CapsLock state
-+ **Alt+CapsLock** to enable/disable Switchy *(only works if enabled in settings)*
++ **Alt+CapsLock** to enable/disable *(only works if enabled in settings)*
 
 
 ## Configure it!
