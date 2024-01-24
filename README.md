@@ -1,14 +1,14 @@
 # CapsWitch 🧙‍♀️⬆️
-A simple, lightweight (13/78 KB) and configurable program that switches keyboard layout with the CapsLock key — just put it in&nbsp;the&nbsp;Startup&nbsp;folder and enjoy!
+A simple and lightweight (13/78 KB) program that switches keyboard layout with the CapsLock key — just put it in&nbsp;the&nbsp;Startup&nbsp;folder and enjoy!
 
-> **Note**: For keyboard layout switching to work in programs running with elevated privileges, CapsWitch should be ran **with administrator privileges** as well. This can be done, for example, [using Task Scheduler](https://youtu.be/jt1Eb-NaBeg). <br>It runs fine **without privileges elevation** as well, however it will only work in non-elevated programs.
+> **Note**:  Even though it's not necessary, for keyboard layout switching to work in programs running with administrator privileges, CapsWitch should be ran **with administrator privileges** as well. <br>This can be done, for example, [using Task Scheduler](https://youtu.be/jt1Eb-NaBeg). <br>It can also run **without privileges elevation**, however it will only work in other non-elevated programs.
 
 
 ## Install it!
 Download an archive with the preferred version:
 
-+ [Windows 7–11 (x64)](https://github.com/1280px/CapsWitch/releases/download/m2.1/CapsWitch-64.zip)
-+ [Windows XP + (x86)](https://github.com/1280px/CapsWitch/releases/download/m2.1/CapsWitch-XP.zip)
++ [Windows 7–11 (x64)](https://github.com/1280px/CapsWitch/releases/download/m2.0/CapsWitch-64.zip)
++ [Windows XP–? (x86)](https://github.com/1280px/CapsWitch/releases/download/m2.0/CapsWitch-XP.zip)
 
 Then, upzip it wherever you want (e.g. in ```shell:startup``` or ```shell:common startup```, which are Startup&nbsp;folder locations for current&nbsp;user and all&nbsp;users respectively), double-click the .exe and you're done!
 
@@ -28,14 +28,14 @@ Then, upzip it wherever you want (e.g. in ```shell:startup``` or ```shell:common
 
 
 ## Use it!
-CapsWitch works by emulating a language switch keystroke *(Alt+Shift by default)* whenever CapsLock key is pressed. <br>The controls are:
+The program works by emulating specific language switch key combination *(Alt+Shift by default, can be configured in settings)* whenever CapsLock key is pressed. The controls are:
 
 + **CapsLock** to change keyboard layout  
-+ **LeftShift+CapsLock / CapsLock+LeftShift** to toggle Caps Lock state
-+ **Alt+CapsLock** to toggle program activity *(disabled by default)*
++ **Shift+CapsLock / CapsLock+Shift** to toggle CapsLock state
++ **Alt+CapsLock** to enable/disable *(disabled by default, can be re-enabled in settings)*
 
 
 ## Configure it!
-CapsWitch allows some customization using .ini settings file. By default, it looks for ```CapsWitch.ini``` file in the same directory, however you can pass custom file path using agruments (i.e. ```.\CapsWitch.exe "C:\test.ini"```). The program can also work without .ini file, using built-in default values.
+CapsWitch allows some customization using .ini settings file. By default, it looks for ```CapsWitch.ini``` file in the same directory, however you can pass custom file path using agruments (e.g. ```.\CapsWitch.exe "C:\test.ini"```). The program can also work without .ini file, using built-in default values (which are just **1** for every option).
 
 *You can see more information about each option [in default .ini file](https://github.com/1280px/CapsWitch/blob/master/CapsWitch.ini).*
