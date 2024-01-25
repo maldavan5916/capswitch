@@ -62,7 +62,11 @@ int importSettingsFromFile(char* settingsFilePath, struct Settings* Settings)
 	// use default path if arguments didn't provide any
 	if (settingsFilePath == NULL) {
 		char defaultFilePath[MAX_PATH];
-		GetFullPathName("CapsWitch.ini", MAX_PATH, defaultFilePath, NULL);
+		GetModuleFileName(NULL, defaultFilePath, MAX_PATH);
+		// replace 3 last characters (.exe -> .ini)
+		defaultFilePath[strlen(defaultFilePath)-3] = 'i';
+		defaultFilePath[strlen(defaultFilePath)-2] = 'n';
+		defaultFilePath[strlen(defaultFilePath)-1] = 'i';
 		settingsFilePath = defaultFilePath;
 	}
 	// if it is provided, throw error if the file doesn't exist
