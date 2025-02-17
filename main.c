@@ -24,6 +24,23 @@ Settings = { 1, TRUE, FALSE, 0 };
 
 int main(int argc, char** argv)
 {
+	// Register the application for automatic restart.
+	// An empty string ("") indicates that the application will restart
+	// with the same command-line arguments as originally provided.
+	// Windows will only restart the application if it terminates unexpectedly.
+	// If the user closes the application normally, no restart will occur.
+	HRESULT hr = RegisterApplicationRestart(L"", 0);
+	#if _DEBUG
+	if (SUCCEEDED(hr))
+	{
+		printf("Application restart registered successfully.\n");
+	}
+	else
+	{
+		printf("Failed to register application restart. Error: 0x%08X\n", hr);
+	}
+	#endif
+
 	if (importSettingsFromFile(argv[1], &Settings) == -1) { return 1; }
 
 	HANDLE hMutex = CreateMutex(0, 0, "CapsWitch");
